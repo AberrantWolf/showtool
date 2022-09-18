@@ -1,0 +1,4 @@
+- use f strings
+- replace unused indicies with \_
+- format with black
+- use [] for empty list declerations, not () which _i think is by convention for sets..._

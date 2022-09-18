@@ -6,7 +6,13 @@ from pathlib import Path
 from typing import Union, List, Callable, Any
 
 from PyQt6 import QtGui
-from PyQt6.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, QAbstractListModel
+from PyQt6.QtCore import (
+    QAbstractTableModel,
+    QModelIndex,
+    Qt,
+    QVariant,
+    QAbstractListModel,
+)
 from PyQt6.QtGui import QColor, QBrush, QColorConstants
 
 
@@ -21,7 +27,9 @@ class TVModelEntry:
     _manual_episode: int = None
     _derived_episode: int
 
-    def __init__(self, path: str, title: str = "unknown", season: int = -1, episode: int = -1):
+    def __init__(
+        self, path: str, title: str = "unknown", season: int = -1, episode: int = -1
+    ):
         self._file_path = Path(path)
         # TODO: Try to use parent folder to derive season number
 
@@ -40,7 +48,9 @@ class TVModelEntry:
                 number = match.group(1)
                 self._season = int(number)
             except ValueError:
-                print("couldn't turn found pattern " + match.group(1) + " into a number")
+                print(
+                    "couldn't turn found pattern " + match.group(1) + " into a number"
+                )
 
         episode_matches = re.finditer(episode_pattern, filename)
         for match in episode_matches:
@@ -48,14 +58,22 @@ class TVModelEntry:
                 number = match.group(1)
                 self._episode = int(number)
             except ValueError:
-                print("couldn't turn found pattern " + match.group(1) + " into a number")
+                print(
+                    "couldn't turn found pattern " + match.group(1) + " into a number"
+                )
 
     def __eq__(self, other):
         if self._season != other._season:
             return False
 
-        my_ep = self._manual_episode if self._manual_episode is not None else self._episode
-        ot_ep = other._manual_episode if other._manual_episode is not None else other._episode
+        my_ep = (
+            self._manual_episode if self._manual_episode is not None else self._episode
+        )
+        ot_ep = (
+            other._manual_episode
+            if other._manual_episode is not None
+            else other._episode
+        )
 
         if my_ep != ot_ep:
             return False
@@ -64,17 +82,20 @@ class TVModelEntry:
         if self._manual_episode is None and other._manual_episode is None:
             return True
 
-        if self._manual_episode is not None and other._manual_episode is not None:
-            return True
-
-        return False
+        return self._manual_episode is not None and other._manual_episode is not None
 
     def __lt__(self, other):
         if self._season < other._season:
             return True
 
-        my_ep = self._manual_episode if self._manual_episode is not None else self._episode
-        ot_ep = other._manual_episode if other._manual_episode is not None else other._episode
+        my_ep = (
+            self._manual_episode if self._manual_episode is not None else self._episode
+        )
+        ot_ep = (
+            other._manual_episode
+            if other._manual_episode is not None
+            else other._episode
+        )
 
         if my_ep == ot_ep:
             return self._manual_episode is None and other._manual_episode is not None
@@ -85,8 +106,14 @@ class TVModelEntry:
         if self._season > other._season:
             return True
 
-        my_ep: int = self._manual_episode if self._manual_episode is not None else self._episode
-        ot_ep: int = other._manual_episode if other._manual_episode is not None else other._episode
+        my_ep: int = (
+            self._manual_episode if self._manual_episode is not None else self._episode
+        )
+        ot_ep: int = (
+            other._manual_episode
+            if other._manual_episode is not None
+            else other._episode
+        )
 
         if my_ep == ot_ep:
             return self._manual_episode is not None and other._manual_episode is None
@@ -169,12 +196,15 @@ class TVTableModel(QAbstractTableModel):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.entries = list()
+        self.entries = []
         self.columns = [
             ModelColumn("Filename", lambda entry: entry.filename),
             ModelColumn("Season", lambda entry: entry.season),
             ModelColumn("Episode", lambda entry: entry.episode),
-            ModelColumn("Fixed", lambda entry: str(entry.derived_episode) + "(" + str(entry.derived_episode) + ")"),
+            ModelColumn(
+                "Fixed",
+                lambda entry: f"{str(entry.derived_episode)}({str(entry.derived_episode)})",
+            ),
         ]
 
     # ----------------------- #
@@ -196,7 +226,7 @@ class TVTableModel(QAbstractTableModel):
             if e.manual_episode is None:
                 continue
             ep = e.manual_episode
-            entries[ep-1] = e
+            entries[ep - 1] = e
 
         idx = 0
         for i in range(len(entries)):
@@ -222,14 +252,14 @@ class TVTableModel(QAbstractTableModel):
     # Qt Overrides
     # ----------------------- #
     def rowCount(self, parent: QModelIndex = ...) -> Union[QVariant, int]:
-        if self.entries is None:
-            return QVariant()
-        return len(self.entries)
+        return QVariant() if self.entries is None else len(self.entries)
 
     def columnCount(self, parent: QModelIndex = ...) -> Union[QVariant, int]:
         return len(self.columns)
 
-    def headerData(self, section: int, orientation: Qt.Orientation, role: int = ...) -> Any:
+    def headerData(
+        self, section: int, orientation: Qt.Orientation, role: int = ...
+    ) -> Any:
         if orientation == Qt.Orientation.Vertical:
             return QVariant()
 
