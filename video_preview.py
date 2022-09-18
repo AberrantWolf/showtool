@@ -62,7 +62,8 @@ class VideoPreview(QWidget):
         self.media = None
 
     def change_current_video(self, filename: str):
-        if filename is None or not filename:
+         if filename is None or not filename:
+ 
             self.mediaPlayer.set_media(None)
             return
 
