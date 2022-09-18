@@ -20,7 +20,8 @@ from PyQt6.QtGui import QColor, QBrush, QColorConstants
 # TV Model Entry class
 @total_ordering
 class TVModelEntry:
-    _file_path: Path
+    # TODO: Add support for multi-episode files (including sorting and auto numbering)
+    _file_path: Union[Path, None]
     _title: str
     _season: int
     _episode: int
@@ -28,15 +29,23 @@ class TVModelEntry:
     _derived_episode: int
 
     def __init__(
-        self, path: str, title: str = "unknown", season: int = -1, episode: int = -1
+        self,
+        path: Union[str, None],
+        title: str = "unknown",
+        season: int = -1,
+        episode: int = -1,
     ):
-        self._file_path = Path(path)
-        # TODO: Try to use parent folder to derive season number
-
         self._title = "unknown"
         self._season = -1
         self._episode = -1
         self._derived_episode = -1
+
+        if path is None:
+            self._file_path = None
+            return
+
+        self._file_path = Path(path)
+        # TODO: Try to use parent folder to derive season number
 
         filename = self._file_path.name
         season_pattern = r"[sS]([0-9]+)"
@@ -120,24 +129,29 @@ class TVModelEntry:
 
         return my_ep > ot_ep
 
+    def is_valid(self):
+        return self._file_path is not None
+
     # full_path --------------------
     @property
     def full_path(self) -> str:
-        return str(self._file_path.absolute())
+        return "" if self._file_path is None else str(self._file_path.absolute())
 
     # filename --------------------
     @property
     def filename(self) -> str:
-        return self._file_path.name
+        return r"<missing>" if self._file_path is None else self._file_path.name
 
     # filename --------------------
     @property
     def parent_dir(self) -> str:
+        if self._file_path is None:
+            return ""
         return str(self._file_path.parent.absolute())
 
     @property
     def extension(self) -> str:
-        return self._file_path.suffix
+        return "" if self._file_path is None else self._file_path.suffix
 
     # title --------------------
     @property
@@ -153,6 +167,10 @@ class TVModelEntry:
     @property
     def episode(self) -> int:
         return self._episode
+
+    @episode.setter
+    def episode(self, val: int):
+        self._episode = val
 
     # manual_episode --------------------
     @property
@@ -218,6 +236,17 @@ class TVTableModel(QAbstractTableModel):
 
     def get_all_items(self):
         return self.entries
+
+    def add_empty_episode(self):
+        row = len(self.entries)
+
+        # Inserted at end, so no need to worry about calculating a range or anything
+        self.beginInsertRows(QModelIndex(), row, row)
+        ep = TVModelEntry(None)
+        ep.episode = row
+        self.entries.append(ep)
+        self._renumber_entries()
+        self.endInsertRows()
 
     def _renumber_entries(self):
         # TODO: Sort by matching seasons
@@ -298,6 +327,9 @@ class TVTableModel(QAbstractTableModel):
             val = int(value)
             if val < 1:
                 return False
+            if val > len(self.entries):
+                return False
+
             entry = self.entries[index.row()]
             self.beginResetModel()
             entry.manual_episode = val
