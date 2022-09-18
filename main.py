@@ -1,13 +1,23 @@
 import os
-import string
 import random
+import string
 import sys
+
 from collections.abc import Iterable
 
 from PyQt6.QtCore import QModelIndex, QSettings, QCoreApplication
 from PyQt6.QtGui import QAction, QKeySequence
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QTableView, QHBoxLayout, \
-    QAbstractItemView, QVBoxLayout, QPushButton
+from PyQt6.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QWidget,
+    QFileDialog,
+    QTableView,
+    QHBoxLayout,
+    QAbstractItemView,
+    QVBoxLayout,
+    QPushButton,
+)
 
 from tv_table_model import TVTableModel, TVModelEntry
 from video_preview import VideoPreview
@@ -15,7 +25,8 @@ from video_preview import VideoPreview
 
 def random_string(length: int):
     letters = string.ascii_lowercase
-    return "".join(random.choice(letters) for i in range(length))
+    return "".join(random.choice(letters) for _ in range(length))
+
 
 class ShowToolApp(QMainWindow):
     # TODO: Support file drop to open
@@ -79,18 +90,21 @@ class ShowToolApp(QMainWindow):
         self.setCentralWidget(main_widget)
 
     def selection_changed(self, selected: QModelIndex):
-        print("selection is " + str(self.items_model.path_at_index(selected.row())))
-        self.videoPreview.change_current_video(self.items_model.path_at_index(selected.row()))
+        print(f"selection is {str(self.items_model.path_at_index(selected.row()))}")
+        self.videoPreview.change_current_video(
+            self.items_model.path_at_index(selected.row())
+        )
 
     def open_files(self):
         settings = QSettings()
         default_dir = settings.value("default directory", "", str)
-        print("default dir: " + default_dir)
+        print(f"default dir: {default_dir}")
         files, _ = QFileDialog.getOpenFileNames(
             self,
             "Open files",
             directory=default_dir,
-            filter=self.tr("Video Files (*.mp4, *.mkv)"))
+            filter=self.tr("Video Files (*.mp4, *.mkv)"),
+        )
         self._do_open_files(files)
 
     def open_directory(self):
@@ -118,9 +132,8 @@ class ShowToolApp(QMainWindow):
         self.videoPreview.stop_video()
 
         files = self.items_model.get_all_items()
-        names_list = list()
-
         idx = 0
+        names_list = []
         for f in files:
             if not f.is_valid():
                 continue
@@ -129,7 +142,8 @@ class ShowToolApp(QMainWindow):
             extension = f.extension
 
             old_path = f.full_path
-            new_path = root_path + "/S" + str(f.season).zfill(2) + "E" + str(f.derived_episode).zfill(2) + extension
+            new_path = f"{root_path}/S{str(f.season).zfill(2)}E{str(f.derived_episode).zfill(2)}{extension}"
+
             temp_path = new_path + random_string(6)
             names_list.append((old_path, temp_path, new_path, idx))
             idx = idx + 1
@@ -146,7 +160,7 @@ class ShowToolApp(QMainWindow):
 
 
 # When running as a standalone application
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = QApplication(sys.argv)
     win = ShowToolApp()
     win.show()

@@ -2,7 +2,14 @@ import platform
 
 from PyQt6.QtCore import QObject, QSettings
 from PyQt6.QtGui import QColor, QPalette
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QFrame, QDoubleSpinBox
+from PyQt6.QtWidgets import (
+    QWidget,
+    QVBoxLayout,
+    QLabel,
+    QHBoxLayout,
+    QFrame,
+    QDoubleSpinBox,
+)
 
 import vlc
 
@@ -20,7 +27,9 @@ class VideoPreview(QWidget):
         self.media = None
         self.mediaPlayer = vlc.MediaPlayer()
         self.media_event_manager: vlc.EventManager = self.mediaPlayer.event_manager()
-        self.media_event_manager.event_attach(vlc.EventType.MediaPlayerPositionChanged, self.pause_video)
+        self.media_event_manager.event_attach(
+            vlc.EventType.MediaPlayerPositionChanged, self.pause_video
+        )
 
         self.videoWidget = QFrame()
         self.videoWidget.setMinimumSize(400, 300)
@@ -53,7 +62,7 @@ class VideoPreview(QWidget):
         self.media = None
 
     def change_current_video(self, filename: str):
-        if filename is None or filename == "":
+        if filename is None or not filename:
             self.mediaPlayer.set_media(None)
             return
 
@@ -89,7 +98,7 @@ class VideoPreview(QWidget):
         # then divide that by the total number of milliseconds for the video length.
         ms = value * 1000
         duration = self.media.get_duration()
-        pos_ratio = ms/duration
+        pos_ratio = ms / duration
 
         self.mediaPlayer.play()
         self.mediaPlayer.set_position(pos_ratio)
