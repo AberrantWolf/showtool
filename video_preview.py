@@ -34,6 +34,7 @@ class VideoPreview(QWidget):
         self.timecode_field = QDoubleSpinBox()
         self.timecode_field.setValue(settings.value("lasttimecode", 0, int))
         self.timecode_field.setMinimum(0.0)
+        self.timecode_field.setMaximum(10000.0)
         self.timecode_field.setSuffix(" sec")
         self.timecode_field.setSingleStep(1.0)
         self.timecode_field.valueChanged.connect(self.set_timecode)
@@ -52,6 +53,10 @@ class VideoPreview(QWidget):
         self.media = None
 
     def change_current_video(self, filename: str):
+        if filename is None or filename == "":
+            self.mediaPlayer.set_media(None)
+            return
+
         # NOTE: Changing the video too quickly seems to cause errors to log from VLC,
         # but it doesn't seem to cause long-term problems.
         self.media = vlc.Media(filename)
@@ -68,6 +73,9 @@ class VideoPreview(QWidget):
         self.set_timecode(-1)
 
     def set_timecode(self, value):
+        if self.mediaPlayer.get_media() is None:
+            return
+
         if value < 0:
             value = self.timecode_field.value()
         settings = QSettings()
