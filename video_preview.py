@@ -47,6 +47,10 @@ class VideoPreview(QWidget):
     def pause_video(self, _):
         self.mediaPlayer.set_pause(True)
 
+    def stop_video(self):
+        self.mediaPlayer.set_media(None)
+        self.media = None
+
     def change_current_video(self, filename: str):
         # NOTE: Changing the video too quickly seems to cause errors to log from VLC,
         # but it doesn't seem to cause long-term problems.

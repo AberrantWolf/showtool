@@ -108,6 +108,10 @@ class TVModelEntry:
     def parent_dir(self) -> str:
         return str(self._file_path.parent.absolute())
 
+    @property
+    def extension(self) -> str:
+        return self._file_path.suffix
+
     # title --------------------
     @property
     def title(self) -> str:
@@ -181,6 +185,9 @@ class TVTableModel(QAbstractTableModel):
         self.entries = sorted(entries)
         self._renumber_entries()
         self.endResetModel()
+
+    def get_all_items(self):
+        return self.entries
 
     def _renumber_entries(self):
         # TODO: Sort by matching seasons
