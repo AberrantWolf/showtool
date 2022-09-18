@@ -59,6 +59,13 @@ class ShowToolApp(QMainWindow):
         main_hbox = QHBoxLayout(main_widget)
 
         files_vbox = QVBoxLayout()
+
+        add_missing_hbox = QHBoxLayout()
+        add_missing_button = QPushButton("Add Missing Episode")
+        add_missing_button.clicked.connect(lambda: self.items_model.add_empty_episode())
+        add_missing_hbox.addWidget(add_missing_button, 0)
+        add_missing_hbox.addStretch(1)
+
         table = QTableView()
         table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         table.setModel(self.items_model)
@@ -70,8 +77,9 @@ class ShowToolApp(QMainWindow):
         apply_hbox.addStretch(1)
         apply_hbox.addWidget(apply_button)
 
-        files_vbox.addWidget(table)
-        files_vbox.addLayout(apply_hbox)
+        files_vbox.addLayout(add_missing_hbox, 0)
+        files_vbox.addWidget(table, 1)
+        files_vbox.addLayout(apply_hbox, 0)
 
         self.videoPreview = VideoPreview(None)
 
@@ -114,6 +122,8 @@ class ShowToolApp(QMainWindow):
 
     def _apply_file_names(self):
         # TODO: generate a script you can run to revert the file name changes in case you screwed up
+        # TODO: this is messing up recreating the entries when there are empty/missing episodes in the middle
+
         # Get a list of all the files, go through them and rename
         # To avoid name conflicts, do this in two passes -- first the name with a random string,
         # then remove the random string. Otherwise, if the files are already in the used format
@@ -121,23 +131,18 @@ class ShowToolApp(QMainWindow):
         self.videoPreview.stop_video()
 
         files = self.items_model.get_all_items()
-        names_list = []
-
         idx = 0
+        names_list = []
         for f in files:
+            if not f.is_valid():
+                continue
+
             root_path = f.parent_dir
             extension = f.extension
 
             old_path = f.full_path
-            new_path = (
-                root_path
-                + "\\S"
-                + str(f.season).zfill(2)
-                + "E"
-                + str(f.derived_episode).zfill(2)
-                + "."
-                + extension
-            )
+            new_path = f"{root_path}/S{str(f.season).zfill(2)}E{str(f.derived_episode).zfill(2)}{extension}"
+
             temp_path = new_path + random_string(6)
             names_list.append((old_path, temp_path, new_path, idx))
             idx = idx + 1
