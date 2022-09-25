@@ -1,4 +1,4 @@
-# TV Fixer
+# Show Tool
 
 I'm making this because I have nearly 200 episodes of a show to go through to make sure they're in the right order, but
 I really don't feel like opening each one up by-hand in VLC to verify that it's the correct episode. Furthermore, I
